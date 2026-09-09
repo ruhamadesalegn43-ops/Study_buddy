@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Study Buddy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+body{font-family:Arial;background:#f4f7fb;margin:0;color:#172033}
+header{background:#5b4bdb;color:white;text-align:center;padding:25px}
+main{max-width:800px;margin:auto;padding:15px}
+.card{background:white;padding:20px;margin:15px 0;border-radius:15px}
+button{background:#5b4bdb;color:white;border:0;padding:12px;border-radius:9px;margin:5px}
+textarea{width:100%;height:180px;box-sizing:border-box;padding:10px}
+#notes{white-space:pre-wrap;line-height:1.6}
+</style>
+</head>
+
+<body>
+<header>
+<h1>📚 My Study Buddy</h1>
+<p>Study from your PDF</p>
+</header>
+
+<main>
+
+<div class="card">
+<h2>📄 Upload your PDF</h2>
+<input type="file" id="pdf" accept=".pdf">
+<p id="status">No PDF selected.</p>
+</div>
+
+<div class="card">
+<h2>📝 Your Notes</h2>
+<button onclick="makeNotes()">Make Short Notes</button>
+<div id="notes"></div>
+</div>
+
+<div class="card">
+<h2>🧠 Study Text</h2>
+<textarea id="text" placeholder="Your PDF text will appear here..."></textarea>
+</div>
+
+</main>
+
+<script>
+let pdfText="";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc=
+"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+document.getElementById("pdf").addEventListener("change",async function(){
+
+let file=this.files[0];
+if(!file)return;
+
+document.getElementById("status").innerText="⏳ Reading PDF...";
+
+let data=await file.arrayBuffer();
+let pdf=await pdfjsLib.getDocument({data:data}).promise;
+
+pdfText="";
+
+for(let page=1;page<=pdf.numPages;page++){
+
+let p=await pdf.getPage(page);
+let content=await p.getTextContent();
+
+pdfText+=content.items.map(x=>x.str).join(" ")+" ";
+}
+
+document.getElementById("text").value=pdfText;
+
+document.getElementById("status").innerText=
+"✅ PDF ready! "+pdf.numPages+" page(s) read.";
+});
+
+function makeNotes(){
+
+if(!pdfText){
+alert("Upload a PDF first.");
+return;
+}
+
+let sentences=pdfText.match(/[^.!?]+[.!?]+/g)||[];
+
+let notes=sentences.slice(0,15)
+.map(x=>"• "+x.trim())
+.join("\n");
+
+document.getElementById("notes").innerText=notes;
+}
+</script>
+
+</body>
+</html>
